@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müzik ve Video İndirici</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #e0e0e0; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: background-color 0.3s, color 0.3s; padding: 20px; box-sizing: border-box;}
+        
+        .main-wrapper { width: 100%; max-width: 400px; }
+
+        .container { background-color: #1e1e1e; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05); text-align: center; border: 1px solid #333; transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; margin-bottom: 20px; }
+        h2 { color: #ffffff; margin-top: 0; transition: color 0.3s; }
+        
+        input[type="text"] { width: 90%; padding: 12px; margin-bottom: 20px; background-color: #2c2c2c; border: 1px solid #444; border-radius: 5px; font-size: 16px; color: #ffffff; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        input[type="text"]:focus { outline: none; border-color: #007BFF; box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); }
+        ::placeholder { color: #777; opacity: 1; }
+        
+        button { background-color: #007BFF; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.3s, transform 0.1s; }
+        button:hover { background-color: #0056b3; }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+        
+        select { width: 100%; padding: 12px; margin-bottom: 15px; background-color: #2c2c2c; border: 1px solid #444; border-radius: 5px; font-size: 15px; color: #ffffff; cursor: pointer; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        select:focus { outline: none; border-color: #007BFF; }
+        
+        .progress-container { width: 100%; background-color: #333; border-radius: 5px; margin-top: 25px; display: none; overflow: hidden; border: 1px solid #444; transition: background-color 0.3s, border-color 0.3s; }
+        .progress-bar { width: 0%; height: 24px; background-color: #2ecc71; text-align: center; line-height: 24px; color: #fff; font-size: 14px; font-weight: bold; transition: width 0.4s ease; box-shadow: 0 0 10px rgba(46, 204, 113, 0.5); }
+        .status-text { font-size: 13px; color: #aaaaaa; margin-top: 15px; min-height: 20px; }
+        
+        .theme-toggle-btn { position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 28px; cursor: pointer; width: auto; padding: 5px; box-shadow: none; transition: transform 0.3s, filter 0.3s; }
+        .theme-toggle-btn:hover { background: transparent; transform: scale(1.1) rotate(15deg); }
+        
+        .confirm-box { display: none; margin-top: 10px; }
+        .confirm-box img { width: 100%; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); max-height: 220px; object-fit: cover; }
+        .confirm-box h4 { margin: 0 0 15px 0; font-size: 15px; line-height: 1.4; color: #fff; }
+        .btn-group { display: flex; gap: 10px; margin-top: 5px; }
+        .btn-secondary { background-color: #e74c3c; }
+        .btn-secondary:hover { background-color: #c0392b; }
+        .btn-success { background-color: #2ecc71; }
+        .btn-success:hover { background-color: #27ae60; }
+
+        /* YENİ: Popülerler CSS */
+        .popular-container { width: 100%; display: none; margin-top: 10px; }
+        .popular-container h3 { font-size: 14px; color: #aaa; margin-bottom: 10px; text-align: left; text-transform: uppercase; letter-spacing: 1px; }
+        .popular-item { display: flex; align-items: center; background-color: #1e1e1e; padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid #333; transition: transform 0.2s, background-color 0.2s; }
+        .popular-item:hover { background-color: #2c2c2c; transform: translateY(-2px); }
+        .popular-item img { width: 45px; height: 45px; border-radius: 5px; object-fit: cover; margin-right: 12px; }
+        
+        /* Şarkı Adı ve İndirme Sayısı İçin Konteyner */
+        .popular-item .info { display: flex; flex-direction: column; overflow: hidden; width: 100%; text-align: left; }
+        
+        /* Hata vermeyen temiz tek satır kesme kodu */
+        .popular-item span.title { font-size: 14px; color: #e0e0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .popular-item span.count { font-size: 11px; color: #888; margin-top: 3px; }
+
+        /* AÇIK TEMA */
+        body.light-theme { background-color: #f4f7f6; color: #333; }
+        body.light-theme .container { background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e0e0e0; }
+        body.light-theme h2, body.light-theme .confirm-box h4 { color: #222; }
+        body.light-theme input[type="text"], body.light-theme select { background-color: #ffffff; border: 1px solid #ccc; color: #333; }
+        body.light-theme input[type="text"]:focus, body.light-theme select:focus { border-color: #007BFF; }
+        body.light-theme .progress-container { background-color: #e0e0e0; border: 1px solid #ccc; }
+        body.light-theme .status-text { color: #555; }
+        body.light-theme .theme-toggle-btn { filter: grayscale(100%) brightness(0); }
+        
+        /* AÇIK TEMA: Popülerler */
+        body.light-theme .popular-container h3 { color: #666; }
+        body.light-theme .popular-item { background-color: #ffffff; border: 1px solid #ddd; }
+        body.light-theme .popular-item:hover { background-color: #f0f0f0; }
+        body.light-theme .popular-item span.title { color: #333; }
+        body.light-theme textarea { background-color: #ffffff; border: 1px solid #ccc; color: #333; }
+        body.light-theme textarea:focus { outline: none; border-color: #007BFF; box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle-btn" id="theme-btn" title="Temayı Değiştir">☀️</button>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <h2>🎵 Medya İndirici</h2>
+            
+            <div class="mode-switch" style="margin-bottom: 20px; display: flex; justify-content: center; gap: 15px;">
+            <label style="cursor: pointer; font-size: 14px;">
+                <input type="radio" name="dl_mode" value="single" checked onchange="toggleMode()"> 🎵 Tekli İndir
+            </label>
+            <label style="cursor: pointer; font-size: 14px;">
+                <input type="radio" name="dl_mode" value="batch" onchange="toggleMode()"> 🗂️ Liste (Toplu) İndir
+            </label>
+        </div>
+
+        <form id="search-form">
+            <input type="text" id="music_name" placeholder="Müzik veya video adı girin...">
+            
+            <textarea id="music_list" placeholder="Her satıra bir müzik adı veya link girin...&#10;Örn:&#10;Teoman - Paramparça&#10;Duman - Belki Alışman Lazım&#10;https://youtube.com/..." style="display:none; width: 90%; height: 100px; padding: 12px; margin-bottom: 20px; background-color: #2c2c2c; border: 1px solid #444; border-radius: 5px; color: #ffffff; resize: none; font-family: inherit;"></textarea>
+            
+            <select id="batch-format-select" style="display:none; margin-bottom: 15px;">
+                <option value="audio">🎵 Sadece Ses (MP3/M4A)</option>
+                <option value="video">🎬 Video Görüntüsü (MP4)</option>
+            </select>
+
+            <button type="submit" id="search-btn">Bul ve İndir</button>
+        </form>
+
+            <div class="confirm-box" id="confirm-box">
+                <img id="thumb-img" src="" alt="Video Kapağı">
+                <h4 id="video-title"></h4>
+                
+                <select id="format-select">
+                    <option value="audio">🎵 Sadece Ses (MP3/M4A)</option>
+                    <option value="video">🎬 Video Görüntüsü (MP4)</option>
+                </select>
+
+                <div class="btn-group" id="btn-group">
+                    <button id="btn-cancel" class="btn-secondary">İptal</button>
+                    <button id="btn-confirm" class="btn-success">İndir</button>
+                </div>
+            </div>
+
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar">0%</div>
+            </div>
+            
+            <p class="status-text" id="status-text"></p>
+        </div>
+
+        <div class="popular-container" id="popular-container">
+            <h3>🔥 Popüler İndirmeler</h3>
+            <div id="popular-list"></div>
+        </div>
+        
+        
+
+
+
+    </div>
+
+    <script>
+        const themeBtn = document.getElementById('theme-btn');
+        const body = document.body;
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme'); themeBtn.innerText = '🌙'; 
+        }
+        themeBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            if (body.classList.contains('light-theme')) {
+                themeBtn.innerText = '🌙'; localStorage.setItem('theme', 'light');
+            } else {
+                themeBtn.innerText = '☀️'; localStorage.setItem('theme', 'dark');
+            }
+            updateStatusColor();
+        });
+
+        function updateStatusColor() {
+            const statusText = document.getElementById('status-text');
+            if(statusText.style.color !== 'rgb(231, 76, 60)' && statusText.style.color !== 'rgb(46, 204, 113)') {
+                statusText.style.color = body.classList.contains('light-theme') ? '#555' : '#aaaaaa';
+            }
+        }
+
+        const searchForm = document.getElementById('search-form');
+        const searchBtn = document.getElementById('search-btn');
+        const confirmBox = document.getElementById('confirm-box');
+        const btnGroup = document.getElementById('btn-group');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const statusText = document.getElementById('status-text');
+        
+        let currentVideoUrl = ""; 
+        let currentTitle = "";
+        let currentThumbnail = "";
+
+        // YENİ: Popüler İndirmeleri Çeken Fonksiyon
+        function loadPopularDownloads() {
+            fetch('/popular')
+            .then(res => res.json())
+            .then(data => {
+                const popContainer = document.getElementById('popular-container');
+                const popList = document.getElementById('popular-list');
+                
+                if(data.length > 0) {
+                    popContainer.style.display = 'block';
+                    popList.innerHTML = '';
+                    
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'popular-item';
+                        
+                        // Şarkı adı ve hemen altında "X kez indirildi" yazısı
+                        div.innerHTML = `
+                            <img src="${item.thumbnail}" alt="thumb"> 
+                            <div class="info">
+                                <span class="title">${item.title}</span>
+                                <span class="count">${item.count} kez indirildi</span>
+                            </div>
+                        `;
+                        
+                        div.onclick = () => {
+                            showConfirmBox(item.title, item.thumbnail, item.url);
+                        };
+                        popList.appendChild(div);
+                    });
+                }
+            });
+        }
+
+        // Sayfa yüklendiğinde popülerleri getir
+        window.onload = loadPopularDownloads;
+
+        function showConfirmBox(title, thumbnail, url) {
+            document.getElementById('thumb-img').src = thumbnail;
+            document.getElementById('video-title').innerText = title;
+            currentVideoUrl = url;
+            currentTitle = title;
+            currentThumbnail = thumbnail;
+
+            searchForm.style.display = 'none';
+            confirmBox.style.display = 'block';
+            statusText.innerText = '';
+        }
+
+        
+        // YENİ: Arayüz modunu değiştiren fonksiyon
+        function toggleMode() {
+            const mode = document.querySelector('input[name="dl_mode"]:checked').value;
+            if (mode === 'single') {
+                document.getElementById('music_name').style.display = 'inline-block';
+                document.getElementById('music_name').required = true;
+                document.getElementById('music_list').style.display = 'none';
+                document.getElementById('music_list').required = false;
+                document.getElementById('batch-format-select').style.display = 'none';
+                document.getElementById('search-btn').innerText = 'Bul';
+            } else {
+                document.getElementById('music_name').style.display = 'none';
+                document.getElementById('music_name').required = false;
+                document.getElementById('music_list').style.display = 'inline-block';
+                document.getElementById('music_list').required = true;
+                document.getElementById('batch-format-select').style.display = 'inline-block';
+                document.getElementById('search-btn').innerText = 'Listeyi ZIP Olarak İndir';
+            }
+        }
+
+        // Ana Form Gönderimi (Tekli veya Toplu ayrımı)
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const mode = document.querySelector('input[name="dl_mode"]:checked').value;
+            
+            if (mode === 'single') {
+                // --- ESKİ TEKLİ ARAMA MANTIĞI BURADA ÇALIŞACAK ---
+                const musicName = document.getElementById('music_name').value;
+                searchBtn.disabled = true;
+                searchBtn.innerText = 'Aranıyor...';
+                statusText.innerText = 'YouTube\'da aranıyor...';
+                updateStatusColor();
+
+                const formData = new FormData();
+                formData.append('music_name', musicName);
+
+                fetch('/search', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    showConfirmBox(data.title, data.thumbnail, data.url);
+                    searchBtn.disabled = false;
+                    searchBtn.innerText = 'Bul';
+                })
+                .catch(error => {
+                    statusText.innerText = error.message;
+                    statusText.style.color = '#e74c3c';
+                    searchBtn.disabled = false;
+                    searchBtn.innerText = 'Bul';
+                });
+
+            } else {
+                // --- YENİ TOPLU İNDİRME MANTIĞI ---
+                const musicList = document.getElementById('music_list').value;
+                const formatType = document.getElementById('batch-format-select').value;
+                
+                searchBtn.disabled = true;
+                searchBtn.innerText = 'İşleniyor...';
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressBar.innerText = '0%';
+                statusText.innerText = 'Toplu indirme başlatılıyor...';
+                updateStatusColor();
+
+                const formData = new FormData();
+                formData.append('music_list', musicList);
+                formData.append('format_type', formatType);
+
+                fetch('/start_batch', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    
+                    const taskId = data.task_id;
+                    const interval = setInterval(() => {
+                        fetch('/progress/' + taskId)
+                        .then(res => res.json())
+                        .then(task => {
+                            if (task.error) throw new Error(task.error);
+                            
+                            progressBar.style.width = task.percent + '%';
+                            progressBar.innerText = task.percent.toFixed(0) + '%';
+                            // Hangi şarkıda olduğunu alt yazıda göster
+                            statusText.innerText = task.detail || 'İndiriliyor...';
+
+                            if (task.status === 'ready') {
+                                clearInterval(interval);
+                                statusText.innerText = 'Tüm liste indirildi! ZIP dosyası gönderiliyor...';
+                                statusText.style.color = '#2ecc71'; 
+                                
+                                setTimeout(() => {
+                                    progressContainer.style.display = 'none';
+                                    document.getElementById('music_list').value = '';
+                                    searchBtn.disabled = false;
+                                    searchBtn.innerText = 'Listeyi ZIP Olarak İndir';
+                                    statusText.innerText = '';
+                                }, 3000);
+                                
+                                window.location.href = '/get_file/' + taskId;
+                                
+                            } else if (task.status === 'error') {
+                                throw new Error(task.error);
+                            }
+                        });
+                    }, 1000);
+                })
+                .catch(error => {
+                    statusText.innerText = 'Hata: ' + error.message;
+                    statusText.style.color = '#e74c3c';
+                    searchBtn.disabled = false;
+                    searchBtn.innerText = 'Listeyi ZIP Olarak İndir';
+                    progressContainer.style.display = 'none';
+                });
+            }
+        });
+
+
+
+        document.getElementById('btn-cancel').addEventListener('click', () => {
+            confirmBox.style.display = 'none';
+            searchForm.style.display = 'block';
+            document.getElementById('music_name').value = '';
+            statusText.innerText = 'İşlem iptal edildi.';
+            updateStatusColor();
+        });
+
+        document.getElementById('btn-confirm').addEventListener('click', () => {
+            const formatType = document.getElementById('format-select').value;
+
+            btnGroup.style.display = 'none'; 
+            document.getElementById('format-select').style.display = 'none'; 
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.innerText = '0%';
+            statusText.innerText = 'İndirme başlatılıyor...';
+            updateStatusColor();
+
+            const formData = new FormData();
+            formData.append('url', currentVideoUrl); 
+            formData.append('format_type', formatType); 
+            formData.append('title', currentTitle); 
+            formData.append('thumbnail', currentThumbnail); 
+
+            fetch('/start', { method: 'POST', body: formData })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                
+                const taskId = data.task_id;
+                const interval = setInterval(() => {
+                    fetch('/progress/' + taskId)
+                    .then(res => res.json())
+                    .then(task => {
+                        if (task.error) throw new Error(task.error);
+                        
+                        progressBar.style.width = task.percent + '%';
+                        progressBar.innerText = task.percent.toFixed(1) + '%';
+                        statusText.innerText = 'İndiriliyor...';
+
+                        if (task.status === 'ready') {
+                            clearInterval(interval);
+                            statusText.innerText = 'Tamamlandı! Dosya gönderiliyor...';
+                            statusText.style.color = '#2ecc71'; 
+                            
+                            setTimeout(() => {
+                                confirmBox.style.display = 'none';
+                                progressContainer.style.display = 'none';
+                                searchForm.style.display = 'block';
+                                btnGroup.style.display = 'flex';
+                                document.getElementById('format-select').style.display = 'block'; 
+                                document.getElementById('music_name').value = '';
+                                statusText.innerText = '';
+                                
+                                // İndirme bitince popüler listesini güncelle
+                                loadPopularDownloads(); 
+                            }, 3000);
+                            
+                            window.location.href = '/get_file/' + taskId;
+                            
+                        } else if (task.status === 'error') {
+                            throw new Error(task.error);
+                        }
+                    });
+                }, 800);
+            })
+            .catch(error => {
+                statusText.innerText = 'Hata: ' + error.message;
+                statusText.style.color = '#e74c3c';
+                btnGroup.style.display = 'flex';
+                document.getElementById('format-select').style.display = 'block';
+                progressContainer.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
