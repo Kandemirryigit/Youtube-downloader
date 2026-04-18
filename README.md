@@ -10,6 +10,13 @@ A Python-based automation tool that downloads YouTube videos or extracts MP3 aud
 - Sequential downloading system
 - Simple and lightweight
 
+---
+
+### Screenshots
+<img width="1916" height="950" alt="Screenshot From 2026-04-18 12-59-54" src="https://github.com/user-attachments/assets/94b042c6-ba81-4a09-bf20-c27f4e18d01b" />
+
+
+
 ## 📦 Requirements
 
 Make sure you have Python installed.
